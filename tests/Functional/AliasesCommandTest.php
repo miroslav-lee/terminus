@@ -2,10 +2,7 @@
 
 namespace Pantheon\Terminus\Tests\Functional;
 
-use Pantheon\Terminus\Tests\Traits\LoginHelperTrait;
-use Pantheon\Terminus\Tests\Traits\SiteBaseSetupTrait;
 use Pantheon\Terminus\Tests\Traits\TerminusTestTrait;
-use Pantheon\Terminus\Tests\Traits\UrlStatusCodeHelperTrait;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -16,18 +13,38 @@ use PHPUnit\Framework\TestCase;
 class AliasesCommandTest extends TestCase
 {
     use TerminusTestTrait;
-    use LoginHelperTrait;
+
+    /**
+     * {@inheritdoc}
+     *
+     * @throws \Exception
+     */
+    protected function setUp(): void
+    {
+        if (!$this->isSiteFrameworkDrupal()) {
+            $this->markTestSkipped(
+                'A Drupal-based test site is required to test Drush-related "drush:aliases" command.'
+            );
+        }
+    }
 
     /**
      * @test
      * @covers \Pantheon\Terminus\Commands\AliasesCommand
      *
-     * @group todo
+     * @throws \Exception
+     *
+     * @group aliases
      */
     public function testGetAliases()
     {
-        $this->fail("Figure out how to test");
-        // Suggestions: get site list then make sure there's
-        // an alias file for each one in the list?
+        $command = sprintf('drush:aliases --only=%s  --print', $this->getSiteName());
+
+        $aliases = $this->terminus($command);
+
+        $this->assertIsString($aliases);
+
+        $aliases_needle = sprintf('$aliases[\'%s.*\']', $this->getSiteId());
+        $this->assertTrue(false !== strpos($aliases, $aliases_needle));
     }
 }
